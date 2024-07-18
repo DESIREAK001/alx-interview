@@ -1,54 +1,54 @@
 #!/usr/bin/python3
-
+"""
+0-stats.py
+"""
 import sys
 
 
-def print_msg(dict_sc, total_file_size):
-    """
-    Method to print
-    Args:
-        dict_sc: dict of status codes
-        total_file_size: total of the file
-    Returns:
-        Nothing
-    """
-
-    print("File size: {}".format(total_file_size))
-    for key, val in sorted(dict_sc.items()):
-        if val != 0:
-            print("{}: {}".format(key, val))
+def formated_print(data):
+    ''' prints data in fromated way '''
+    out = "File size: {}\n".format(data['size'])
+    for key in data['codes']:
+        if data['codes'][key] != 0:
+            out += '{}: {}\n'.format(key, data['codes'][key])
+    sys.stdout.write(out)
+    sys.stdout.flush()
 
 
-total_file_size = 0
-code = 0
-counter = 0
-dict_sc = {"200": 0,
-           "301": 0,
-           "400": 0,
-           "401": 0,
-           "403": 0,
-           "404": 0,
-           "405": 0,
-           "500": 0}
+def extract(data, line):
+    ''' check if the input is valid and extracts data from it '''
+    line = line.rsplit()
+    try:
+        status = line[-2]
+        if status in data['codes']:
+            data['codes'][status] += 1
+        data['size'] += int(line[-1])
+    except (IndexError, ValueError):
+        pass
 
-try:
+
+def main(data):
+    ''' program entry level '''
+    i = 0
     for line in sys.stdin:
-        parsed_line = line.split()  # ✄ trimming
-        parsed_line = parsed_line[::-1]  # inverting
+        extract(data, line)
+        i += 1
+        if i % 10 == 0:
+            formated_print(data)
+    formated_print(data)
 
-        if len(parsed_line) > 2:
-            counter += 1
 
-            if counter <= 10:
-                total_file_size += int(parsed_line[0])  # file size
-                code = parsed_line[1]  # status code
+if __name__ == '__main__':
+    data = {
+        'size': 0, 'codes': {
+            '200': 0, '301': 0,
+            '400': 0, '401': 0, '403': 0,
+            '404': 0, '405': 0, '500': 0
+        }
+    }
 
-                if (code in dict_sc.keys()):
-                    dict_sc[code] += 1
-
-            if (counter == 10):
-                print_msg(dict_sc, total_file_size)
-                counter = 0
-
-finally:
-    print_msg(dict_sc, total_file_size)
+    try:
+        main(data)
+    except KeyboardInterrupt:
+        formated_print(data)
+        raise

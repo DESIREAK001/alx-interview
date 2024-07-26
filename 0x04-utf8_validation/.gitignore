@@ -1,0 +1,5 @@
+push
+fix
+main.py
+__pycache__
+*.pyc

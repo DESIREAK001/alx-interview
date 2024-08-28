@@ -1,62 +1,73 @@
-#!/usr/bin/python3
-"""
-0-nqueens.py
-"""
-from sys import argv, exit
+import sys
 
-
-def main():
-    ''' enrty point '''
-    if len(argv) != 2:
-        print('Usage: nqueens N')
-        exit(1)
-    elif not argv[1].isnumeric():
-        print('N must be a number')
-        exit(1)
-    N = int(argv[1])
-    if N < 4:
-        print('N must be at least 4')
-        exit(1)
-    return N
-
-
-def validate(board, index, N):
-    ''' checks if the move is valid '''
-    y, x = index
-    for a in range(y - 1, -1, -1):
-        if board[a][x]:
+def is_safe(board, row, col):
+    # Check this row on left side
+    for i in range(col):
+        if board[row][i] == 1:
             return False
-        of_left = x - (y - a)
-        of_right = x + (y - a)
-        if of_left >= 0 and board[a][of_left]:
+
+    # Check upper diagonal on left side
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
             return False
-        if of_right < N and board[a][of_right]:
+
+    # Check lower diagonal on left side
+    for i, j in zip(range(row, len(board), 1), range(col, -1, -1)):
+        if board[i][j] == 1:
             return False
+
     return True
 
-
-def nqueens(board, index, N, boards):
-    ''' nqueens logic '''
-    y, x = index
-    if y == N:
+def solve_n_queens_util(board, col):
+    N = len(board)
+    # Base case: If all queens are placed then return true
+    if col >= N:
         return True
-    if validate(board, index, N):
-        board[y][x] = 1
-        for i in range(N):
-            if nqueens(board, (y + 1, i), N, boards):
-                boards.append([[i, board[i].index(1)] for i in range(N)])
-                break
 
-        board[y][x] = 0
-
-
-if __name__ == '__main__':
-    N = main()
-
-    board = [[0 for a in range(N)] for b in range(N)]
-    boards = []
+    # Consider this column and try placing this queen in all rows one by one
     for i in range(N):
-        value = nqueens(board, (0, i), N, boards)
-        board[0][i] = 0
-    for board in boards:
-        print(board)
+        if is_safe(board, i, col):
+            # Place this queen in board[i][col]
+            board[i][col] = 1
+
+            # Recur to place rest of the queens
+            if solve_n_queens_util(board, col + 1) == True:
+                return True
+
+            # If placing queen in board[i][col] doesn't lead to a solution then remove queen from board[i][col]
+            board[i][col] = 0
+
+    # If the queen cannot be placed in any row in this column col then return false
+    return False
+
+def solve_n_queens(N):
+    board = [[0]*N for _ in range(N)]
+    
+    if not solve_n_queens_util(board, 0):
+        print("No solution exists")
+        return []
+
+    return board
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        N = int(sys.argv[1])
+    except ValueError:
+        print("N must be a number", file=sys.stderr)
+        sys.exit(1)
+
+    if N < 4:
+        print("N must be at least 4", file=sys.stderr)
+        sys.exit(1)
+
+    solutions = solve_n_queens(N)
+    for sol in solutions:
+        print(sol)
+
+if __name__ == "__main__":
+    main()
+

@@ -1,31 +1,17 @@
 #!/usr/bin/node
+
 const request = require('request');
 
-const printCharacters = (movieId) => {
-  const url = `https://swapi.dev/api/films/${movieId}`;
-
-  request(url, { json: true }, (error, response, body) => {
-    if (error) {
-      console.error('Error:', error);
-      return;
-    }
-
-    if (response.statusCode !== 200) {
-      console.error(`HTTP Error: ${response.statusCode}`);
-      return;
-    }
-
-    const characters = body.characters;
-
-    characters.forEach((characterUrl) => {
-      request(characterUrl, { json: true }, (err, res, charBody) => {
-        if (err) {
-          console.error('Error fetching character:', err);
-          return;
-        }
-
-        console.log(charBody.name);
-      });
-    });
+request('https://swapi-api.hbtn.io/api/films/' + process.argv[2], function (err, res, body) {
+  if (err) throw err;
+  const actors = JSON.parse(body).characters;
+  exactOrder(actors, 0);
+});
+const exactOrder = (actors, x) => {
+  if (x === actors.length) return;
+  request(actors[x], function (err, res, body) {
+    if (err) throw err;
+    console.log(JSON.parse(body).name);
+    exactOrder(actors, x + 1);
   });
 };

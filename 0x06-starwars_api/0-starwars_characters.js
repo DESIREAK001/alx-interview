@@ -1,26 +1,31 @@
 #!/usr/bin/node
 const request = require('request');
 
-const number = process.argv[2];
-const url = `https://swapi-api.alx-tools.com/api/films/${number}/`;
-const promises = [];
+const printCharacters = (movieId) => {
+  const url = `https://swapi.dev/api/films/${movieId}`;
 
-request(url, function (error, response, body) {
-  if (error) throw error;
-  const data = JSON.parse(body);
-  data.characters.forEach(function (person) {
-    promises.push(findPerson(person));
-  });
-  Promise.all(promises).then((names) => {
-    names.forEach((name) => console.log(name));
-  });
-});
+  request(url, { json: true }, (error, response, body) => {
+    if (error) {
+      console.error('Error:', error);
+      return;
+    }
 
-function findPerson (url) {
-  return new Promise(function (resolve, reject) {
-    request(url, (error, response, body) => {
-      if (error) reject(error);
-      resolve(JSON.parse(body).name);
+    if (response.statusCode !== 200) {
+      console.error(`HTTP Error: ${response.statusCode}`);
+      return;
+    }
+
+    const characters = body.characters;
+
+    characters.forEach((characterUrl) => {
+      request(characterUrl, { json: true }, (err, res, charBody) => {
+        if (err) {
+          console.error('Error fetching character:', err);
+          return;
+        }
+
+        console.log(charBody.name);
+      });
     });
   });
-}
+};
